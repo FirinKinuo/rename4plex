@@ -61,7 +61,7 @@ func InitFileAnime(animePath string) (AnimeFile *FileAnime, err error) {
 				}
 
 				return &FileAnime{
-					Path:      animePath,
+					Path:      filepath.FromSlash(animePath),
 					Name:      match["title"],
 					Extension: match["ext"],
 					Episode:   int16(episode),
