@@ -56,7 +56,9 @@ func InitFileAnime(animePath string) (AnimeFile *FileAnime, err error) {
 						season = 0
 					} else {
 						season, err = strconv.Atoi(match["season"])
-						return nil, err
+						if err != nil {
+							return nil, err
+						}
 					}
 				}
 
