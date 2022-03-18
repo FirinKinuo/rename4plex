@@ -1,3 +1,5 @@
+VERSION := $(file < VERSION)
+
 clean:
 	rm -rf _build/ release/
 
