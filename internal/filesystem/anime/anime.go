@@ -34,45 +34,54 @@ func (f *FileAnime) GetAnimeFileName() string {
 	return fileName
 }
 
+func checkIsEpisodeOVA(episode string) bool {
+	return search.IsExistString(episode, &SeasonSpecials)
+}
+
 func InitFileAnime(animePath string) (AnimeFile *FileAnime, err error) {
 	log.Infof("Try init video %s as anime", animePath)
-	if search.IsExistString(filepath.Ext(animePath), &VideoFormats) {
-		for _, regex := range cfg.RegexpsAnimeData {
-			log.Debugf("Try rexexp: %s", regex)
-			match, err := regroup.MustCompile(regex).Groups(filepath.Base(animePath))
-			if err == nil {
-				log.Infof("Video %s init as Anime by regexp %s", animePath, regex)
-				episode := -1
-				season := 1
-				if match["episode"] != "" {
-					episode, err = strconv.Atoi(match["episode"])
-					if err != nil {
-						return nil, err
-					}
-				}
 
-				if match["season"] != "" {
-					if search.IsExistString(match["season"], &SeasonSpecials) {
-						season = 0
-					} else {
-						season, err = strconv.Atoi(match["season"])
-						if err != nil {
-							return nil, err
-						}
-					}
-				}
+	for _, regex := range cfg.RegexpsAnimeData {
+		log.Debugf("Try rexexp: %s", regex)
+		match, _ := regroup.MustCompile(regex).Groups(filepath.Base(animePath))
 
-				return &FileAnime{
-					Path:      filepath.FromSlash(animePath),
-					Name:      match["title"],
-					Extension: match["ext"],
-					Episode:   int16(episode),
-					Season:    int8(season),
-				}, err
+		if match == nil {
+			continue
+		}
+
+		log.Infof("Video %s init as Anime by regexp %s", animePath, regex)
+
+		episode := -1
+		season := 1
+
+		if match["episode"] != "" {
+			episode, err = strconv.Atoi(match["episode"])
+
+			if err != nil {
+				return nil, err
 			}
 		}
-	} else {
-		return nil, errors.New(fmt.Sprintf("File %s is not a video", animePath))
+
+		if match["season"] != "" {
+			if checkIsEpisodeOVA(match["season"]) {
+				season = 0
+			} else {
+				season, err = strconv.Atoi(match["season"])
+
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+
+		return &FileAnime{
+			Path:      filepath.FromSlash(animePath),
+			Name:      match["title"],
+			Extension: match["ext"],
+			Episode:   int16(episode),
+			Season:    int8(season),
+		}, nil
 	}
+
 	return nil, errors.New(fmt.Sprintf("File %s did not pass regexp", animePath))
 }

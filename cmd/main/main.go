@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	log "github.com/sirupsen/logrus"
@@ -21,32 +22,58 @@ type Opts struct {
 
 var opts Opts
 
-func replaceAnimeFile(animePath string, saveOriginal bool, useSymLink bool) (err error) {
-	if _, err := os.Stat(animePath); err == nil && search.IsExistString(filepath.Ext(animePath), &anime.VideoFormats) {
-		if animeFile, err := anime.InitFileAnime(opts.Path); err == nil {
-			if _, err := movement.MoveAnimeToPlex(animeFile, saveOriginal, useSymLink); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+func checkFileExist(filePath string) (err error) {
+	if _, err = os.Stat(filePath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func checkIsFileVideo(filePath string) (err error) {
+	if search.IsExistString(filepath.Ext(filePath), &anime.VideoFormats) != true {
+		return errors.New(fmt.Sprintf("File %s - does not video!", filepath.Ext(filePath)))
 	}
 	return nil
 }
 
-func replaceAllAnimeInFolder(animeFolderPath string, saveOriginal bool, useSymLink bool) (err error) {
-	if videoFiles, err := ioutil.ReadDir(animeFolderPath); err == nil {
-		for _, videoFile := range videoFiles {
-			if animeFile, err := anime.InitFileAnime(filepath.FromSlash(fmt.Sprintf("%s/%s", animeFolderPath, videoFile.Name()))); err == nil {
-				if _, err := movement.MoveAnimeToPlex(animeFile, saveOriginal, useSymLink); err != nil {
-					return err
-				}
-			} else {
-				return err
-			}
-		}
-	} else {
+func replaceAnimeFile(animePath string, saveOriginal bool, useSymLink bool) (err error) {
+	if err = checkFileExist(animePath); err != nil {
 		return err
+	}
+
+	if err = checkIsFileVideo(animePath); err != nil {
+		return err
+	}
+
+	animeFile, err := anime.InitFileAnime(animePath)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = movement.MoveAnimeToPlex(animeFile, saveOriginal, useSymLink)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func replaceAllAnimeInFolder(animeFolderPath string, saveOriginal bool, useSymLink bool) (err error) {
+	videoFiles, err := ioutil.ReadDir(animeFolderPath)
+
+	if err != nil {
+		return nil
+	}
+
+	for _, videoFile := range videoFiles {
+		err = replaceAnimeFile(filepath.Join(animeFolderPath, videoFile.Name()), saveOriginal, useSymLink)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -55,21 +82,25 @@ func replaceAllAnimeInFolder(animeFolderPath string, saveOriginal bool, useSymLi
 func main() {
 	config.InitLogger()
 	_, err := flags.Parse(&opts)
+
 	if err != nil {
 		log.Debugf("Unable to determine arguments, reason: %s", err)
 		os.Exit(-1)
 	}
-	if animePath, err := os.Stat(opts.Path); err == nil {
-		if animePath.IsDir() {
-			if err := replaceAllAnimeInFolder(opts.Path, opts.SaveOriginal, opts.SymLink); err != nil {
-				log.Error(err)
-			}
-		} else {
-			if err := replaceAnimeFile(opts.Path, opts.SaveOriginal, opts.SymLink); err != nil {
-				log.Error(err)
-			}
-		}
+
+	animePath, err := os.Stat(opts.Path)
+
+	if err != nil {
+		log.Error(err)
+	}
+
+	if animePath.IsDir() {
+		err = replaceAllAnimeInFolder(opts.Path, opts.SaveOriginal, opts.SymLink)
 	} else {
-		log.Fatal(err)
+		err = replaceAnimeFile(opts.Path, opts.SaveOriginal, opts.SymLink)
+	}
+
+	if err != nil {
+		log.Error(err)
 	}
 }
