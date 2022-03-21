@@ -16,6 +16,15 @@ build-all:
 	GOOS=windows GOARCH=amd64   CGO_ENABLED=0 go build -tags release -o _build/anime-replacer-$(VERSION)-windows-amd64.exe cmd/main/main.go
 	cd _build; sha256sum * > sha256sums.txt
 
+install:
+	make build
+	mv ./anime-replacer /usr/bin/anime-replacer
+
+	mkdir -p /etc/go-plex-anime
+	cp ./configs/config.yaml.sample /etc/go-plex-anime/config.yaml
+
+	mkdir -p /var/log/go-plex-anime
+
 release:
 	make clean
 	make build-all
