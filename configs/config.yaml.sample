@@ -3,8 +3,6 @@ debug: false
 log_level: error
 log_path: /var/log/go-plex-anime/replacer.log
 
-dir_plex_anime_library:
-
 regexps_anime_data:
     - (?i)(?P<title>.*)_(?P<season>\d*)_\[(?P<episode>\d*)\]_\[anilibria_tv.*\.(?P<ext>.*)
     - (?i)(?P<title>.*)_(?P<season>ova|ona|oba|oav)_\[(?P<episode>\d*)\]_\[anilibria_tv.*\.(?P<ext>.*) # Specials
@@ -12,4 +10,3 @@ regexps_anime_data:
     - (?i)(?P<title>.*)(?P<season>)(?P<episode>\d*)_\[anilibria_tv.*\.(?P<ext>.*)  # Full meter
     - (?i)\[shiza project]\s(?P<title>.*)\s(?P<season>\d*)\s\[(?P<episode>\d*)\].(?P<ext>.*)
     - (?i)\[shiza project]\s(?P<title>.*)\s(?P<season>)\[(?P<episode>\d*)\].(?P<ext>.*)  # No season
-``
