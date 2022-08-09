@@ -80,12 +80,13 @@ An example configuration location `configs/config.yaml.sample`
 
 #### Configuration Options:
 
-| Option             | Description                                           | value                                   |
-|--------------------|-------------------------------------------------------|-----------------------------------------|
-| debug              | Enable debug mode                                     | bool                                    |
-| log_level          | Logging level                                         | string `(degub, info, error, critical)` |
-| log_path           | Path to the log file                                  | string                                  |
-| regexps_anime_data | List of regular expressions to search for anime data* | list[string]                            |
+| Option                 | Description                                           | value                                   |
+|------------------------|-------------------------------------------------------|-----------------------------------------|
+| debug                  | Enable debug mode                                     | bool                                    |
+| log_level              | Logging level                                         | string `(debug, info, error, critical)` |
+| log_path               | Path to the log file                                  | string                                  |
+| regexps_anime_data     | List of regular expressions to search for anime data* | list[string]                            |
+| dir_plex_anime_library | Path to Plex library directory                        | string                                  |
 
 Regular expressions must have groups:
 - title
